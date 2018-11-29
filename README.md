@@ -4,7 +4,9 @@ This is an all-in-one Bash script for use with @cysmith's [neural-style-tf](http
 I use a modified and extended version of @ProGamerGov's [Neural-Tile](https://github.com/ProGamerGov/Neural-Tile) and a slightly modified version of @larspars' [neural-style-video](https://github.com/larspars/neural-style-video).
 
 ### Usage
-Open `run_neuralstyle.sh` in a text editor, fill in the required fields, save, then run the script.
+Open `run_neuralstyle.sh` in a text editor, fill in the required fields, save, then run `run_neuralstyle.sh`.
+
+Make sure neural_style.py and other assets are in the same directory as these scripts.
 
 ### Dependencies List
 [neural-style-tf](https://github.com/cysmith/neural-style-tf)
