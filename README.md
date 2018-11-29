@@ -63,23 +63,36 @@ Then close down the command line and reopen it, before typing:
 `pip3 install --upgrade tensorflow-gpu`
 
 Now, test the imports to make sure everything is loading correctly. Type:
+
 `python`
+
 `import tensorflow as tf`
+
 `import numpy as np`
+
 `import scipy.io`
+
 `import argparse`
+
 `import struct`
+
 `import errno`
+
 `import time`
+
 `import cv2`
+
 `import os`
 
 If there are any issues, you'll know what's causing it. 
 
 If you can't import tensorflow, or it doesn't seem to work with CUDA, try downgrading to tensorflow 1.4:
 `pip3 install --upgrade --ignore-installed tensorflow-gpu==1.4`
+
 `pip3 uninstall numpy`
+
 `cd C:/python`
+
 `pip3 install numpy-1.14.6+mkl-cp35-cp35m-win_amd64.whl`
 
 ### 6. Neural Style
@@ -108,9 +121,13 @@ Thankfully there's a third-party GUI app for that: [Windows Path Editor by rix0r
 Just enter in the directories you need in the path and drag and drop to order:
 
 `\NVIDIA GPU Computing Toolkit\CUDA\v8.0`
+
 `\Python35\`
+
 `\ffmpeg\bin`
+
 `\ImageMagick\`
+
 `\waifu2x-caffe\`
 
 Then just use the supplied .sh scripts.
