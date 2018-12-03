@@ -122,14 +122,14 @@ Thankfully there's a third-party GUI app for that: [Windows Path Editor by rix0r
 
 Just enter in the directories you need in the path and drag and drop to order:
 
-`\NVIDIA GPU Computing Toolkit\CUDA\v8.0`
+`\...\NVIDIA GPU Computing Toolkit\CUDA\v8.0`
 
-`\Python35\`
+`\...\Python35\`
 
-`\ffmpeg\bin`
+`\...\ffmpeg\bin`
 
-`\ImageMagick\`
+`\...\ImageMagick\`
 
-`\waifu2x-caffe\`
+`\...\waifu2x-caffe\`
 
 Then just use the supplied .sh scripts.
