@@ -489,34 +489,34 @@ image_setup(){
 			fi
 			
 			if [ $T == 2 ]; then 
-				mod=$(echo $cm | awk "{print 0.055*$cm}")
+				mod=$(echo $cm | awk "{print 0.05*$cm}")
 				overlap="${mod%.*}"
 			fi		
 		
 			if [ $T == 3 ]; then 
-				mod=$(echo $cm | awk "{print 0.045*$cm}")
+				mod=$(echo $cm | awk "{print 0.04*$cm}")
 				overlap="${mod%.*}"
 			fi
 			
 			if [ $T == 4 ]; then 
-				mod=$(echo $cm | awk "{print 0.035*$cm}")
+				mod=$(echo $cm | awk "{print 0.03*$cm}")
 				overlap="${mod%.*}"
 			fi		
 		
 			if [ $T == 5 ]; then
-				mod=$(echo $cm | awk "{print 0.025*$cm}")
+				mod=$(echo $cm | awk "{print 0.02*$cm}")
 				overlap="${mod%.*}"
 			fi
 			
 			if [ $T == 6 ]; then
-				mod=$(echo $cm | awk "{print 0.02*$cm}")
+				mod=$(echo $cm | awk "{print 0.018*$cm}")
 				overlap="${mod%.*}"
 			fi
 		
 			# ImageMagick breaks at certain overlaps in 7x7 grids for some reason for non-square input images.
 			# Don't know why, but this should hopefully keep the overlap low enough.
 			if [ $T == 7 ]; then
-				mod=$(echo $cm | awk "{print 0.015*$cm}")
+				mod=$(echo $cm | awk "{print 0.01*$cm}")
 				overlap="${mod%.*}"
 			fi
 			
