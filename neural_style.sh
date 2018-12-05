@@ -389,12 +389,16 @@ image_setup(){
 		ch=$(convert $input -format "%h" info:)
 		
 		# Find the larger dimension for the content image, as well as its aspect ratio
-		if [ $cw -ge $ch ]; then
-			cm=$cw
-			cr=$(echo $cw $ch | awk "{print $cw/$ch}")
+		if [ -z $size ]; then
+			if [ $cw -ge $ch ]; then
+				cm=$cw
+				cr=$(echo $cw $ch | awk "{print $cw/$ch}")
+			else
+				cm=$ch
+				cr=$(echo $ch $cw | awk "{print $ch/$cw}")
+			fi
 		else
-			cm=$ch
-			cr=$(echo $ch $cw | awk "{print $ch/$cw}")
+			cm=$size
 		fi
 
 		# Grab style image dimensions
@@ -422,7 +426,6 @@ image_setup(){
 		fi
 
 		# Grab tiling number
-		
 		if [ ! -z $tile_num ]; then
 			if [ $tile_num -ge 1 ] && [ $tile_num -le 7 ]; then
 				T="$tile_num"
