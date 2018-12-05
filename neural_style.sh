@@ -103,8 +103,13 @@ check_inputs(){
 	if [ -z $origcolors ]; then
 		origcolors="N"
 	fi	
+
+	#b10. Detect if no $matchparams
+	if [ -z $matchparams ]; then
+		matchparams="N"
+	fi
 	
-	#b10. Detect if no $verbose
+	#b11. Detect if no $verbose
 	if [ -z $verbose ]; then
 		verbose="N"
 	fi	
@@ -489,7 +494,7 @@ image_setup(){
 			tile_m=$tile_w
 		else
 			tile_m=$tile_h
-		fi		
+		fi
 
 		# Autodetect $overlap if null
 		if [ -z $overlap ] && [ $T -gt 1 ]; then
@@ -500,7 +505,7 @@ image_setup(){
 			if [ $T == 2 ]; then 
 				mod=$(echo $cm | awk "{print 0.05*$cm}")
 				overlap="${mod%.*}"
-			fi		
+			fi
 		
 			if [ $T == 3 ]; then 
 				mod=$(echo $cm | awk "{print 0.04*$cm}")
@@ -521,7 +526,7 @@ image_setup(){
 				mod=$(echo $cm | awk "{print 0.0175*$cm}")
 				overlap="${mod%.*}"
 			fi
-
+		
 			if [ $T == 7 ]; then
 				mod=$(echo $cm | awk "{print 0.015*$cm}")
 				overlap="${mod%.*}"
@@ -599,6 +604,13 @@ image_setup(){
 		fi
 		
 		image_been_setup="Y"
+	fi
+	
+	# Match parameters
+	if [ "$matchparams" == "Y" ]; then
+		echo "Matching style image parameters to input image parameters..."
+		match_parameters $input $styleopt $styleopt
+		echo "Matching complete."
 	fi
 	
 	# Send to neural_style image script
@@ -747,7 +759,7 @@ tile(){
 		else
 			convert -geometry x"$size" "$inputopt" "$inputopt"
 		fi
-	fi	
+	fi
 	
 # 7. Tile input
 	if [ "$fileformat" == "image" ]; then
@@ -787,7 +799,7 @@ tile(){
 		echo "# 7. Tiling the input image into a 7x7 grid"
 		convert "$inputopt" -crop 7x7+"$overlap"+"$overlap"@ +repage +adjoin $base/$clean_name"_%d.png"
 	fi
-
+	
 	# Remove needless tiles that ImageMagick generates (typically on 7x7)
 	(( T_upperbound = T_square + T ))
 	(( T_square_unr = T_square + 1 ))
@@ -806,10 +818,7 @@ tile(){
 		original_tile_m="$original_tile_h"
 	fi
 	
-	# Resize style image to match tile size
-	convert "$styleopt" -geometry "$original_tile_m"x "$styleopt"
-	
-	# Resize all tiles to avoid ImageMagick weirdness
+	# Resize all tiles to account for rounding errors
 	mogrify -path $base -resize "$original_tile_w"x"$original_tile_h"\! $base/*.png
 	
 	# Output overall setup time
@@ -1034,6 +1043,8 @@ tile(){
 
 neural_style(){
 # Runs neural_style.py
+# $1 = input file path; $2 = style file path; $3 = output file path
+
 	echoname="$(basename $1 .png)"
 	
 	# Detect if called from basic() or tile()
@@ -1164,9 +1175,45 @@ neural_style(){
 	
 }
 
+match_parameters(){
+# Uses ImageMagick to make parameters of image 2 be like parameters of image 1
+# $1 = input file path; $2 = style file path; $3 = output file path
+
+	# Grab means and SD for each color channel for input image
+	local i_mean_R=$(convert $1 -format "%[fx:mean.r]" info:)
+	local i_mean_G=$(convert $1 -format "%[fx:mean.g]" info:)
+	local i_mean_B=$(convert $1 -format "%[fx:mean.b]" info:)
+	local i_sd_R=$(convert $1 -format "%[fx:standard_deviation.r]" info:)
+	local i_sd_G=$(convert $1 -format "%[fx:standard_deviation.g]" info:)
+	local i_sd_B=$(convert $1 -format "%[fx:standard_deviation.b]" info:)
+	
+	# Grab means and SD for each color channel for style image
+	local s_mean_R=$(convert $2 -format "%[fx:mean.r]" info:)
+	local s_mean_G=$(convert $2 -format "%[fx:mean.g]" info:)
+	local s_mean_B=$(convert $2 -format "%[fx:mean.b]" info:)
+	local s_sd_R=$(convert $2 -format "%[fx:standard_deviation.r]" info:)
+	local s_sd_G=$(convert $2 -format "%[fx:standard_deviation.g]" info:)
+	local s_sd_B=$(convert $2 -format "%[fx:standard_deviation.b]" info:)
+
+	# Calculate the gains and biases
+	local gain_R=$(echo $i_sd_R $s_sd_R | awk "{print $i_sd_R/$s_sd_R}")
+	local gain_G=$(echo $i_sd_G $s_sd_G | awk "{print $i_sd_G/$s_sd_G}")
+	local gain_B=$(echo $i_sd_B $s_sd_B | awk "{print $i_sd_B/$s_sd_B}")
+	local bias_R=$(echo $i_mean_R $s_mean_R $gain_R | awk "{print $i_mean_R-$s_mean_R*$gain_R}")
+	local bias_G=$(echo $i_mean_G $s_mean_G $gain_G | awk "{print $i_mean_G-$s_mean_G*$gain_G}")
+	local bias_B=$(echo $i_mean_B $s_mean_B $gain_B | awk "{print $i_mean_B-$s_mean_B*$gain_B}")
+
+	# Modify the style image to be like the input image
+	convert $2 \
+		-channel R -function Polynomial ${gain_R},${bias_R} \
+		-channel G -function Polynomial ${gain_G},${bias_G} \
+		-channel B -function Polynomial ${gain_B},${bias_B} \
+		+channel $3
+
+}
+
 waifu2x(){
 # Calls waifu2x to increase the size of the basic neural-style image
-
 # $1 = input file path; $2 = output file path
 	
 	# Specify the model directory based on the algorithm specified
@@ -1226,6 +1273,7 @@ waifu2x(){
 
 show_time(){
 # Takes an input in seconds and convert to hours, minutes and seconds
+# $1 = input number in seconds
 
 	num=$1
 	min=0
