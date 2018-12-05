@@ -481,6 +481,15 @@ image_setup(){
 		fi
 
 		T_square=$(echo $T | awk "{print $T*$T-1}")
+		
+		# Compute dimensions of tiles
+		tile_w=$(echo $cw $T | awk "{print $cw/$T}")
+		tile_h=$(echo $cw $T | awk "{print $cw/$T}")
+		if [ ${tile_w%.*} -ge ${tile_h%.*} ]; then
+			tile_m=$tile_w
+		else
+			tile_m=$tile_h
+		fi		
 
 		# Autodetect $overlap if null
 		if [ -z $overlap ] && [ $T -gt 1 ]; then
@@ -509,14 +518,12 @@ image_setup(){
 			fi
 			
 			if [ $T == 6 ]; then
-				mod=$(echo $cm | awk "{print 0.018*$cm}")
+				mod=$(echo $cm | awk "{print 0.0175*$cm}")
 				overlap="${mod%.*}"
 			fi
-		
-			# ImageMagick breaks at certain overlaps in 7x7 grids for some reason for non-square input images.
-			# Don't know why, but this should hopefully keep the overlap low enough.
+
 			if [ $T == 7 ]; then
-				mod=$(echo $cm | awk "{print 0.01*$cm}")
+				mod=$(echo $cm | awk "{print 0.015*$cm}")
 				overlap="${mod%.*}"
 			fi
 			
@@ -582,11 +589,7 @@ image_setup(){
 		
 		# Resize style image to match content image size
 		if [ "$skipbasic" == "Y" ]; then
-			if [ "$cw" -ge "$ch" ]; then
-				convert "$styleopt" -geometry "$size"x "$styleopt"
-			else
-				convert "$styleopt" -geometry x"$size" "$styleopt"
-			fi
+			convert "$styleopt" -geometry "$tile_m"x "$styleopt"
 		else
 			if [ $cw -ge $ch ]; then
 				convert "$styleopt" -geometry "$constraintsize"x "$styleopt"
@@ -783,6 +786,15 @@ tile(){
 	if [ $T == 7 ]; then
 		echo "# 7. Tiling the input image into a 7x7 grid"
 		convert "$inputopt" -crop 7x7+"$overlap"+"$overlap"@ +repage +adjoin $base/$clean_name"_%d.png"
+	fi
+
+	# Remove needless tiles that ImageMagick generates (typically on 7x7)
+	(( T_upperbound = T_square + T ))
+	(( T_square_unr = T_square + 1 ))
+	if [ -f $base/$clean_name"_${T_square_unr}.png" ]; then
+		for tile in $(eval echo {$T_square_unr..$T_upperbound}); do
+			rm -r $base/$clean_name"_${tile}.png"
+		done
 	fi
 
 	original_tile_w=$(convert $base/$clean_name'_0.png' -format "%w" info:)
