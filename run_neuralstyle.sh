@@ -62,7 +62,7 @@
 		origcolors=""
 	
 	# b10. Do you want to match the parameters of the input and the style images? May lead to more cohesive stylization.
-	#	   Default: N | Accepts: Y/N
+	#     Default: N | Accepts: Y/N
 		matchparams=""
 	
 	# b11. Do you want the neural_style script to run verbosely--how many steps completed, loading model weights, etc.?
