@@ -663,12 +663,10 @@ basic(){
 	
 # 4. Move the result image and (if told to) delete the temporary directory
 	if [ $T == 1 ] && [ "$fileformat" == "image" ]; then	
-		if [ $size == constraintsize ]; then
+		if [ $size == $constraintsize ]; then
 			echo "# 4. Exporting to $exportdir"
 			# Export image
 			cp "$outdir/${echoname}.png" "$exportdir/$projname-NS.png"
-			# Export project settings
-			cp "$basedir/run_neuralstyle.sh" "$exportdir/${projname}-settings.txt"
 		else	
 			# Resize image through Waifu2x
 			waifu2x "$upresdir/${echoname}.png" "$upresdir"
@@ -678,6 +676,9 @@ basic(){
 			rm -r "$upresdir"
 			cp "$outdir/${projname}_final.png" "$exportdir/$projname-NS.png"
 		fi
+		
+		# Export project settings
+		cp "$basedir/run_neuralstyle.sh" "$exportdir/${projname}-settings.txt"	
 		
 		# Display time elapsed on project and exit
 		time_total=$(( SECONDS - start ))
