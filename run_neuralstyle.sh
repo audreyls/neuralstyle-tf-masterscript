@@ -4,7 +4,7 @@
 		projname=""
 		
 	# a2. Set input
-	#	  Accepts: both image and video | Must enter, or project will fail
+	#     Accepts: both image and video | Must enter, or project will fail
 		input=""
 
 	# a3. Set style
@@ -19,7 +19,7 @@
 		exportdir=""
 
 	# a6. Do you want to clean up directories after they are processed, leaving only the stylized image(s)?
-	#	  Can save on hard-drive space. (Y/N)
+	#     Default: N | Accepts: Y/N
 		cleanup=""
 
 # B. Parameters for neural_style
@@ -37,11 +37,11 @@
 		tvweight=""
 
 	# b4. How many iterations on the basic, one-tile process? Higher numbers have greater stylization. 
-	#	  Default: 1000
+	#     Default: 1000
 		maxit=""
 		
 	# b5. Would you like to blend the waifu2x result with the original input before the upres process? 
-	# 	  If so, what opacity should the (neural-styled) waifu2x result be set to?
+	#     If so, what opacity should the (neural-styled) waifu2x result be set to?
 	#     Default: 100 | Accepts: 0-100
 		input_blend=""
 	
