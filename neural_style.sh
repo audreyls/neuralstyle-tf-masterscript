@@ -801,14 +801,58 @@ tile(){
 		convert "$inputopt" -crop 7x7+"$overlap"+"$overlap"@ +repage +adjoin $base/$clean_name"_%d.png"
 	fi
 	
-	# Remove needless tiles that ImageMagick generates (typically on 7x7)
-	(( T_upperbound = T_square + T ))
+	# Remove aberrant tiles
+	# Strange tiles that sometimes occur due to ImageMagick (typically on 7x7)
+	(( T_upperbound = T_square*2 ))
+	
+	# Because of minor size discrepancies between tiles, I pad by not including $overlap to be safe
+	sizecheckreal_w=$(echo $overlap $cw $T | awk "{print $cw/$T}")
+	sizecheckreal_w="${sizecheckreal_w%.*}"
+	
+	sizecheckreal_h=$(echo $overlap $ch $T | awk "{print $ch/$T}")
+	sizecheckreal_h="${sizecheckreal_h%.*}"
+	
+	# Remove aberrant tiles (step 1)
+	for tile in $(eval echo {0..$T_upperbound}); do
+		if [ -f "$base/${clean_name}_${tile}.png" ]; then
+			sizecheck_w=$(convert $base/${clean_name}_${tile}.png -format "%w" info:)
+			sizecheck_h=$(convert $base/${clean_name}_${tile}.png -format "%h" info:)
+		else
+			sizecheck_w=$sizecheckreal_w
+			sizecheck_h=$sizecheckreal_h
+		fi
+		# The aberrant tiles are always too small
+		# Checks if at least one dimension is smaller than what it's supposed to be
+		if [ $sizecheck_w -lt $sizecheckreal_w ] || [ $sizecheck_h -lt $sizecheckreal_h ]; then
+			rm -r "$base/${clean_name}_${tile}.png"
+		fi
+	done
+	
+	# Reorder the tiles if there were any resultant deletions from above (step 2)
+	for tile in $(eval echo {0..$T_square}); do
+		if [ ! -f "$base/${clean_name}_${tile}.png" ]; then
+			# Find the next tile that exists
+			complete=0
+			for check in $(eval echo {$tile..$T_upperbound}); do
+				if [ $complete == 0 ] && [ -f "$base/${clean_name}_${check}.png" ]; then
+					tileafter=$check
+					complete=1
+				fi
+			done
+			# Renumber the tile
+			if [ -f "$base/${clean_name}_${tileafter}.png" ]; then
+				mv "$base/${clean_name}_${tileafter}.png" "$base/${clean_name}_${tile}.png"
+			fi
+		fi
+	done
+
+	# Remove aberrant tiles numbered higher than $T_square (step 3)
 	(( T_square_unr = T_square + 1 ))
-	if [ -f $base/$clean_name"_${T_square_unr}.png" ]; then
 		for tile in $(eval echo {$T_square_unr..$T_upperbound}); do
-			rm -r $base/$clean_name"_${tile}.png"
+			if [ -f "$base/${clean_name}_${tile}.png" ]; then
+				rm -r "$base/${clean_name}_${tile}.png"
+			fi
 		done
-	fi
 
 	original_tile_w=$(convert $base/$clean_name'_0.png' -format "%w" info:)
 	original_tile_h=$(convert $base/$clean_name'_0.png' -format "%h" info:)
