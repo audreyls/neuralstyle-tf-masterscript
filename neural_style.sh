@@ -541,6 +541,7 @@ image_setup(){
 		feather="$overlap"
 		
 		# Style scaling
+		# Pretty bad right now, but neuralstyle-tf has no inbuilt style scaling
 		if [ ! -z $style_scale ]; then
 			ss_lowerbound=$(echo $style_scale | awk "{if ($style_scale < 0.1) print 1; else print 0}")
 			ss_upperbound=$(echo $style_scale | awk "{if ($style_scale > 10) print 1; else print 0}")
@@ -594,7 +595,8 @@ image_setup(){
 		
 		# Resize style image to match content image size
 		if [ "$skipbasic" == "Y" ]; then
-			convert "$styleopt" -geometry "$tile_m"x "$styleopt"
+			(( tile_m_true = tile_m + overlap ))
+			convert "$styleopt" -geometry "$tile_m_true"x "$styleopt"
 		else
 			if [ $cw -ge $ch ]; then
 				convert "$styleopt" -geometry "$constraintsize"x "$styleopt"
