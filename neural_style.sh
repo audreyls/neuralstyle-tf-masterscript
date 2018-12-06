@@ -495,7 +495,8 @@ image_setup(){
 		else
 			tile_m=$tile_h
 		fi
-
+		tile_m="${tile_m%.*}"
+		
 		# Autodetect $overlap if null
 		if [ -z $overlap ] && [ $T -gt 1 ]; then
 			if [ $frame == 1 ]; then 
