@@ -197,11 +197,11 @@ launch(){
 	start=$SECONDS
 	
 	# Launch video or image script based on $fileformat
-	if [ "$fileformat" == "video" ]; then
+	if [ "$fileformat" = "video" ]; then
 		video $1 $2
 	fi
 	
-	if [ "$fileformat" == "image" ]; then
+	if [ "$fileformat" = "image" ]; then
 		frame="1"
 		image_setup $1 $2
 	fi
@@ -235,7 +235,7 @@ video(){
 	mkdir -p "$framedir"
 	
 	# Run ffmpeg
-	if [ "$skip_basic" == "Y" ] || [ $input_blend -ne 100 ]; then
+	if [ "$skip_basic" = "Y" ] || [ $input_blend -ne 100 ]; then
 		if [ ! -z $end_frame ]; then
 			ffmpeg -v quiet -i "$1" -r "$framerate" -vframes "$end_frame" -vf scale="$size":-1 "${framedir}/frame_%04d.png"
 		else
@@ -309,7 +309,7 @@ video(){
 		if [ ! -s $nsdir/frame_${i}.png ]; then
 			echo "=STARTING $frame/$end_frame="
 			# Neural Style
-			if [ $frame == 1 ]; then
+			if [ $frame = 1 ]; then
 				image_setup $framedir/frame_0001.png $style_image
 			else
 				image_setup $flowdir/frame_${i}.png $style_image
@@ -320,7 +320,7 @@ video(){
 				python opticalflow.py --input_1 $framedir/frame_${i}.png --input_1_styled $nsdir/frame_${i}.png  --input_2 $framedir/frame_${j}.png --output $flowdir/frame_${j}.png --alpha 0.05
 			
 			# Clean up processed frame directory if instructed
-			if [ "$cleanup" == "Y" ]; then
+			if [ "$cleanup" = "Y" ]; then
 				rm -r "$processed_dir"
 			fi
 			
@@ -341,7 +341,7 @@ video(){
 	ffmpeg -v quiet -i "$nsdir/frame_%04d.png" -r "$framerate" -vf scale="$size":-1 "$outdir/${content_filename}-NS.$extension"
 	echo "Neural-style conversion: Complete"
 	nvo_awk=$(echo $ns_video_opacity | awk "{print $ns_video_opacity<1}")
-	if [ $nvo_awk == 1 ]; then
+	if [ $nvo_awk = 1 ]; then
 		frame_begin=$(echo $remove_frame $framerate | awk "{print $remove_frame/$framerate}")
 		vid_timestamp=$(echo $end_frame $framerate | awk "{print $end_frame/$framerate}")
 		vid_timestamp=$(printf "%.3f\n" $vid_timestamp)
@@ -362,7 +362,7 @@ video(){
 	# Export the video(s)
 	cp "$outdir/${content_filename}-NS.$extension" "$exportdir/${projname}-NS.$extension"
 	
-	if [ "$nvo_awk" == "1" ]; then
+	if [ "$nvo_awk" = "1" ]; then
 		cp "$outdir/${content_filename}-NS-blended.$extension" "$exportdir/${projname}-NS-blended.$extension"
 	fi
 	
@@ -370,7 +370,7 @@ video(){
 	cp "$basedir/run_neuralstyle.sh" "$exportdir/${projname}-settings.txt"
 	
 	# Clean up directories if specified
-	if [ "$cleanup" == "Y" ]; then
+	if [ "$cleanup" = "Y" ]; then
 		rm -r "$framedir"
 	fi
 	
@@ -421,11 +421,11 @@ image_setup(){
 		
 		# Autodetect size if $size null
 		if [ -z $size ]; then
-			if [ $frame == 1 ]; then
+			if [ $frame = 1 ]; then
 				echo "No size specified. Autodetecting..."
 			fi
 			size=$cm
-			if [ $frame == 1 ]; then
+			if [ $frame = 1 ]; then
 				echo "Size detected as "$cw"x"$ch", largest dimension $cm. Size set to $size"
 			fi
 		fi
@@ -435,7 +435,7 @@ image_setup(){
 			if [ $tile_num -ge 1 ] && [ $tile_num -le 7 ]; then
 				T="$tile_num"
 			else
-				if [ $frame == 1 ]; then 
+				if [ $frame = 1 ]; then 
 					echo "Tile number specified out of bounds (1-7). Autodetecting instead."
 				fi
 				tile_num=""
@@ -478,7 +478,7 @@ image_setup(){
 			fi
 
 			if [ $size -gt $constraintsize7 ]; then
-				if [ $frame == 1 ]; then
+				if [ $frame = 1 ]; then
 					echo "Image size is very large. Neural-style may fail"
 				fi
 				T=7
@@ -496,44 +496,44 @@ image_setup(){
 			tile_m=$tile_h
 		fi
 		tile_m="${tile_m%.*}"
-		
+
 		# Autodetect $overlap if null
 		if [ -z $overlap ] && [ $T -gt 1 ]; then
-			if [ $frame == 1 ]; then 
+			if [ $frame = 1 ]; then 
 				echo "No tiling overlap specified. Generating a best-guess number..."
 			fi
 			
-			if [ $T == 2 ]; then 
+			if [ $T = 2 ]; then 
 				mod=$(echo $cm | awk "{print 0.05*$cm}")
 				overlap="${mod%.*}"
 			fi
 		
-			if [ $T == 3 ]; then 
+			if [ $T = 3 ]; then 
 				mod=$(echo $cm | awk "{print 0.04*$cm}")
 				overlap="${mod%.*}"
 			fi
 			
-			if [ $T == 4 ]; then 
+			if [ $T = 4 ]; then 
 				mod=$(echo $cm | awk "{print 0.03*$cm}")
 				overlap="${mod%.*}"
 			fi		
 		
-			if [ $T == 5 ]; then
+			if [ $T = 5 ]; then
 				mod=$(echo $cm | awk "{print 0.02*$cm}")
 				overlap="${mod%.*}"
 			fi
 			
-			if [ $T == 6 ]; then
+			if [ $T = 6 ]; then
 				mod=$(echo $cm | awk "{print 0.0175*$cm}")
 				overlap="${mod%.*}"
 			fi
 		
-			if [ $T == 7 ]; then
+			if [ $T = 7 ]; then
 				mod=$(echo $cm | awk "{print 0.015*$cm}")
 				overlap="${mod%.*}"
 			fi
 			
-			if [ $frame == 1 ]; then
+			if [ $frame = 1 ]; then
 				echo "Set overlap to $overlap"
 			fi
 		fi
@@ -553,26 +553,26 @@ image_setup(){
 		fi
 		
 		# Sanitize the input style scale
-		if [ $ss_lowerbound == 1 ]; then
+		if [ $ss_lowerbound = 1 ]; then
 			style_scale="0.1"
 		fi
 		
-		if [ $ss_upperbound == 1 ]; then
+		if [ $ss_upperbound = 1 ]; then
 			style_scale="10"
 		fi
 		
 		# Adjust style image size up
 		# Zooms into the center of the image and crops (will lose edge information with this method)
-		if [ ! -z $style_scale ] && [ $ss_sizeup == 1 ]; then
+		if [ ! -z $style_scale ] && [ $ss_sizeup = 1 ]; then
 			echo "Increasing style image per supplied style scale..."
 			convert "$styleopt" -gravity center -resize "$scale_mod"% -crop "$sw"x"$sh"+0+0 "$styleopt"
 		fi
 		
 		# Adjust style image size down
 		# Zooms out of the center of the image and generates a 1x1 or 2x2 tiled representation of the input
-		if [ ! -z $style_scale ] && [ $ss_sizedown == 1 ]; then
+		if [ ! -z $style_scale ] && [ $ss_sizedown = 1 ]; then
 			echo "Decreasing style image per supplied style scale..."
-			if [ $ss_tilesize == 1 ]; then
+			if [ $ss_tilesize = 1 ]; then
 				# Overlay smaller image on top of full-size image
 				convert "$styleopt" -geometry "$scale_mod"% "${styleopt%.*}-down.png"
 				composite -compose Copy -gravity Center "${styleopt%.*}-down.png" "$styleopt" "$styleopt"
@@ -595,7 +595,7 @@ image_setup(){
 		fi
 		
 		# Resize style image to match content image size
-		if [ "$skipbasic" == "Y" ]; then
+		if [ "$skipbasic" = "Y" ]; then
 			(( tile_m_true = tile_m + overlap ))
 			convert "$styleopt" -geometry "$tile_m_true"x "$styleopt"
 		else
@@ -610,14 +610,14 @@ image_setup(){
 	fi
 	
 	# Match parameters
-	if [ "$matchparams" == "Y" ]; then
+	if [ "$matchparams" = "Y" ]; then
 		echo "Matching style image parameters to input image parameters..."
 		match_parameters $input $styleopt $styleopt
 		echo "Matching complete."
 	fi
 	
 	# Send to neural_style image script
-	if [ "$skipbasic" == "Y" ]; then
+	if [ "$skipbasic" = "Y" ]; then
 		tile $1 $styleopt
 	else
 		basic $1 $styleopt
@@ -637,7 +637,7 @@ basic(){
 	style=$2
 	
 	# Create directories
-	if [ "$fileformat" == "video" ]; then
+	if [ "$fileformat" = "video" ]; then
 		processed_dir=$outdir/03_processedframes/${clean_name}-$frame
 		mkdir -p "$processed_dir"
 		upresdir=$processed_dir/basic-output
@@ -650,7 +650,7 @@ basic(){
 # 2. Grab image data
 	echo "# 2. Grabbing image data"
 	
-	if [ "$fileformat" == "image" ]; then
+	if [ "$fileformat" = "image" ]; then
 		cp "$input" "$outdir/input.png"
 		inputopt="$outdir/input.png"
 	else
@@ -665,8 +665,8 @@ basic(){
 		neural_style $inputopt $styleopt $upresdir
 	
 # 4. Move the result image and (if told to) delete the temporary directory
-	if [ $T == 1 ] && [ "$fileformat" == "image" ]; then	
-		if [ $size == $constraintsize ]; then
+	if [ $T = 1 ] && [ "$fileformat" = "image" ]; then	
+		if [ $size = $constraintsize ]; then
 			echo "# 4. Exporting to $exportdir"
 			# Export image
 			cp "$outdir/${echoname}.png" "$exportdir/$projname-NS.png"
@@ -681,7 +681,7 @@ basic(){
 		fi
 		
 		# Export project settings
-		cp "$basedir/run_neuralstyle.sh" "$exportdir/${projname}-settings.txt"	
+		cp "$basedir/run_neuralstyle.sh" "$exportdir/${projname}-settings.txt"
 		
 		# Display time elapsed on project and exit
 		time_total=$(( SECONDS - start ))
@@ -692,7 +692,7 @@ basic(){
 		exit
 	fi
 
-	if [ $T == 1 ] && [ "$fileformat" == "video" ]; then
+	if [ $T = 1 ] && [ "$fileformat" = "video" ]; then
 		echo "# 4. Increasing size of image to $size via Waifu2x and moving image to master frame directory"
 		# Resize image through Waifu2x
 		waifu2x "$upresdir/${echoname}.png" "$upresdir"
@@ -722,8 +722,8 @@ tile(){
 	style=$2
 	
 	# Create directories
-	if [ "$skipbasic" == "Y" ]; then
-		if [ "$fileformat" == "video" ]; then
+	if [ "$skipbasic" = "Y" ]; then
+		if [ "$fileformat" = "video" ]; then
 			processed_dir=$outdir/03_processedframes/${clean_name}-$frame
 			mkdir -p "$processed_dir"
 			upresdir=$processed_dir
@@ -738,7 +738,7 @@ tile(){
 	echo "# 6. Grabbing image data"
 	
 	# Set input image for tiling process
-	if [ "$skipbasic" == "Y" ]; then
+	if [ "$skipbasic" = "Y" ]; then
 		cp "$input" "$upresdir/input.png"
 		inputopt="$upresdir/input.png"
 	else
@@ -757,7 +757,7 @@ tile(){
 	fi
 	
 	
-	if [ "$fileformat" == "image" ]; then
+	if [ "$fileformat" = "image" ]; then
 		if [ "$cw" -ge "$ch" ]; then
 			convert -geometry "$size"x "$inputopt" "$inputopt"
 		else
@@ -766,7 +766,7 @@ tile(){
 	fi
 	
 # 7. Tile input
-	if [ "$fileformat" == "image" ]; then
+	if [ "$fileformat" = "image" ]; then
 		base=$outdir/base
 	else
 		base=$processed_dir/base
@@ -774,32 +774,32 @@ tile(){
 	
 	mkdir -p $base
 	
-	if [ $T == 2 ]; then
+	if [ $T = 2 ]; then
 		echo "# 7. Tiling the input image into a 2x2 grid"
 		convert "$inputopt" -crop 2x2+"$overlap"+"$overlap"@ +repage +adjoin $base/$clean_name"_%d.png"
 	fi
 	
-	if [ $T == 3 ]; then
+	if [ $T = 3 ]; then
 		echo "# 7. Tiling the input image into a 3x3 grid"
 		convert "$inputopt" -crop 3x3+"$overlap"+"$overlap"@ +repage +adjoin $base/$clean_name"_%d.png"
 	fi
 	
-	if [ $T == 4 ]; then
+	if [ $T = 4 ]; then
 		echo "# 7. Tiling the input image into a 4x4 grid"
 		convert "$inputopt" -crop 4x4+"$overlap"+"$overlap"@ +repage +adjoin $base/$clean_name"_%d.png"
 	fi
 	
-	if [ $T == 5 ]; then
+	if [ $T = 5 ]; then
 		echo "# 7. Tiling the input image into a 5x5 grid"
 		convert "$inputopt" -crop 5x5+"$overlap"+"$overlap"@ +repage +adjoin $base/$clean_name"_%d.png"
 	fi
 	
-	if [ $T == 6 ]; then
+	if [ $T = 6 ]; then
 		echo "# 7. Tiling the input image into a 6x6 grid"
 		convert "$inputopt" -crop 6x6+"$overlap"+"$overlap"@ +repage +adjoin $base/$clean_name"_%d.png"
 	fi
 	
-	if [ $T == 7 ]; then
+	if [ $T = 7 ]; then
 		echo "# 7. Tiling the input image into a 7x7 grid"
 		convert "$inputopt" -crop 7x7+"$overlap"+"$overlap"@ +repage +adjoin $base/$clean_name"_%d.png"
 	fi
@@ -837,7 +837,7 @@ tile(){
 			# Find the next tile that exists
 			complete=0
 			for check in $(eval echo {$tile..$T_upperbound}); do
-				if [ $complete == 0 ] && [ -f "$base/${clean_name}_${check}.png" ]; then
+				if [ $complete = 0 ] && [ -f "$base/${clean_name}_${check}.png" ]; then
 					tileafter=$check
 					complete=1
 				fi
@@ -856,9 +856,9 @@ tile(){
 				rm -r "$base/${clean_name}_${tile}.png"
 			fi
 		done
-
-	original_tile_w=$(convert $base/$clean_name'_0.png' -format "%w" info:)
-	original_tile_h=$(convert $base/$clean_name'_0.png' -format "%h" info:)
+	
+	original_tile_w=$(convert $base/${clean_name}_0.png -format "%w" info:)
+	original_tile_h=$(convert $base/${clean_name}_0.png -format "%h" info:)
 	
 	if [ $original_tile_w -ge $original_tile_h ]; then
 		original_tile_m="$original_tile_w"
@@ -875,7 +875,7 @@ tile(){
 # 8. Neural-style each tile
 	echo "# 8. Neural-styling the tiles"
 	
-	if [ "$fileformat" == "image" ]; then
+	if [ "$fileformat" = "image" ]; then
 		tiles_dir=$outdir/tiles
 		tileinput_dir=$outdir/base
 	else
@@ -902,7 +902,7 @@ tile(){
 # 9. Feather tiles
 	echo "# 9. Feathering tiles"
 	
-	if [ "$fileformat" == "image" ]; then
+	if [ "$fileformat" = "image" ]; then
 		feathered_dir=$outdir/feathered
 	else
 		feathered_dir=$processed_dir/feathered
@@ -918,20 +918,20 @@ tile(){
 # 10. Smush the feathered tiles together
 	echo "# 10. Combining feathered tiles"
 	
-	if [ "$fileformat" == "image" ]; then
+	if [ "$fileformat" = "image" ]; then
 		smushdir=$outdir
 	else
 		smushdir=$processed_dir
 	fi
 	
-	if [ $T == 2 ]; then
+	if [ $T = 2 ]; then
 		convert -background transparent \
 			\( $feathered_dir/$clean_name'_0.png' $feathered_dir/$clean_name'_1.png' +smush -$smush_value_w -background transparent \) \
 			\( $feathered_dir/$clean_name'_2.png' $feathered_dir/$clean_name'_3.png' +smush -$smush_value_w -background transparent \) \
 			-background none  -background transparent -smush -$smush_value_h  $smushdir/$clean_name.large_feathered.png
 	fi
 	
-	if [ $T == 3 ]; then
+	if [ $T = 3 ]; then
 		convert -background transparent \
 			\( $feathered_dir/$clean_name'_0.png' $feathered_dir/$clean_name'_1.png' $feathered_dir/$clean_name'_2.png' +smush -$smush_value_w -background transparent \) \
 			\( $feathered_dir/$clean_name'_3.png' $feathered_dir/$clean_name'_4.png' $feathered_dir/$clean_name'_5.png' +smush -$smush_value_w -background transparent \) \
@@ -939,7 +939,7 @@ tile(){
 			-background none  -background transparent -smush -$smush_value_h  $smushdir/$clean_name.large_feathered.png
 	fi
 	
-	if [ $T == 4 ]; then
+	if [ $T = 4 ]; then
 		convert -background transparent \
 			\( $feathered_dir/$clean_name'_0.png' $feathered_dir/$clean_name'_1.png' $feathered_dir/$clean_name'_2.png' $feathered_dir/$clean_name'_3.png' +smush -$smush_value_w -background transparent \)     \
 			\( $feathered_dir/$clean_name'_4.png' $feathered_dir/$clean_name'_5.png' $feathered_dir/$clean_name'_6.png' $feathered_dir/$clean_name'_7.png' +smush -$smush_value_w -background transparent \)     \
@@ -948,7 +948,7 @@ tile(){
 			-background none  -background transparent -smush -$smush_value_h  $smushdir/$clean_name.large_feathered.png
 	fi
 
-	if [ $T == 5 ]; then
+	if [ $T = 5 ]; then
 		convert -background transparent \
 			\( $feathered_dir/$clean_name'_0.png' $feathered_dir/$clean_name'_1.png' $feathered_dir/$clean_name'_2.png' $feathered_dir/$clean_name'_3.png' $feathered_dir/$clean_name'_4.png' +smush -$smush_value_w -background transparent \)      \
 			\( $feathered_dir/$clean_name'_5.png' $feathered_dir/$clean_name'_6.png' $feathered_dir/$clean_name'_7.png' $feathered_dir/$clean_name'_8.png' $feathered_dir/$clean_name'_9.png' +smush -$smush_value_w -background transparent \)      \
@@ -958,7 +958,7 @@ tile(){
 			-background none  -background transparent -smush -$smush_value_h  $smushdir/$clean_name.large_feathered.png
 	fi
 
-	if [ $T == 6 ]; then
+	if [ $T = 6 ]; then
 		convert -background transparent \
 			\( $feathered_dir/$clean_name'_0.png' $feathered_dir/$clean_name'_1.png' $feathered_dir/$clean_name'_2.png' $feathered_dir/$clean_name'_3.png' $feathered_dir/$clean_name'_4.png' $feathered_dir/$clean_name'_5.png' +smush -$smush_value_w \)       \
 			\( $feathered_dir/$clean_name'_6.png' $feathered_dir/$clean_name'_7.png' $feathered_dir/$clean_name'_8.png' $feathered_dir/$clean_name'_9.png' $feathered_dir/$clean_name'_10.png' $feathered_dir/$clean_name'_11.png' +smush -$smush_value_w \)     \
@@ -969,7 +969,7 @@ tile(){
 			-background none  -background transparent -smush -$smush_value_h  $smushdir/$clean_name.large_feathered.png
 	fi
 	
-	if [ $T == 7 ]; then
+	if [ $T = 7 ]; then
 		convert -background transparent \
 			\( $feathered_dir/$clean_name'_0.png' $feathered_dir/$clean_name'_1.png' $feathered_dir/$clean_name'_2.png' $feathered_dir/$clean_name'_3.png' $feathered_dir/$clean_name'_4.png' $feathered_dir/$clean_name'_5.png' $feathered_dir/$clean_name'_6.png' +smush -$smush_value_w \)        \
 			\( $feathered_dir/$clean_name'_7.png' $feathered_dir/$clean_name'_8.png' $feathered_dir/$clean_name'_9.png' $feathered_dir/$clean_name'_10.png' $feathered_dir/$clean_name'_11.png' $feathered_dir/$clean_name'_12.png' $feathered_dir/$clean_name'_13.png' +smush -$smush_value_w \)    \
@@ -984,14 +984,14 @@ tile(){
 # 11. Smush the non-feathered tiles together and combine
 	echo "# 11. Combining non-feathered tiles"
 	
-	if [ $T == 2 ]; then
+	if [ $T = 2 ]; then
 		convert -background transparent \
 			\( $tiles_dir/$clean_name'_0.png' $tiles_dir/$clean_name'_1.png' +smush -$smush_value_w \) \
 			\( $tiles_dir/$clean_name'_2.png' $tiles_dir/$clean_name'_3.png' +smush -$smush_value_w \) \
 			-background none -smush -$smush_value_h  $smushdir/$clean_name.large.png
 	fi
 
-	if [ $T == 3 ]; then
+	if [ $T = 3 ]; then
 		convert -background transparent \
 			\( $tiles_dir/$clean_name'_0.png' $tiles_dir/$clean_name'_1.png' $tiles_dir/$clean_name'_2.png' +smush -$smush_value_w \) \
 			\( $tiles_dir/$clean_name'_3.png' $tiles_dir/$clean_name'_4.png' $tiles_dir/$clean_name'_5.png' +smush -$smush_value_w \) \
@@ -999,7 +999,7 @@ tile(){
 			-background none -smush -$smush_value_h  $smushdir/$clean_name.large.png
 	fi
 	
-	if [ $T == 4 ]; then
+	if [ $T = 4 ]; then
 		convert -background transparent \
 			\( $tiles_dir/$clean_name'_0.png' $tiles_dir/$clean_name'_1.png' $tiles_dir/$clean_name'_2.png' $tiles_dir/$clean_name'_3.png' +smush -$smush_value_w \)     \
 			\( $tiles_dir/$clean_name'_4.png' $tiles_dir/$clean_name'_5.png' $tiles_dir/$clean_name'_6.png' $tiles_dir/$clean_name'_7.png' +smush -$smush_value_w \)     \
@@ -1008,7 +1008,7 @@ tile(){
 			-background none -smush -$smush_value_h  $smushdir/$clean_name.large.png
 	fi
 
-	if [ $T == 5 ]; then
+	if [ $T = 5 ]; then
 		convert -background transparent \
 			\( $tiles_dir/$clean_name'_0.png' $tiles_dir/$clean_name'_1.png' $tiles_dir/$clean_name'_2.png' $tiles_dir/$clean_name'_3.png' $tiles_dir/$clean_name'_4.png' +smush -$smush_value_w \)      \
 			\( $tiles_dir/$clean_name'_5.png' $tiles_dir/$clean_name'_6.png' $tiles_dir/$clean_name'_7.png' $tiles_dir/$clean_name'_8.png' $tiles_dir/$clean_name'_9.png' +smush -$smush_value_w \)      \
@@ -1018,7 +1018,7 @@ tile(){
 			-background none -smush -$smush_value_h  $smushdir/$clean_name.large.png
 	fi
 	
-	if [ $T == 6 ]; then
+	if [ $T = 6 ]; then
 		convert \
 			\( $tiles_dir/$clean_name'_0.png' $tiles_dir/$clean_name'_1.png' $tiles_dir/$clean_name'_2.png' $tiles_dir/$clean_name'_3.png' $tiles_dir/$clean_name'_4.png' $tiles_dir/$clean_name'_5.png' +smush -$smush_value_w \)       \
 			\( $tiles_dir/$clean_name'_6.png' $tiles_dir/$clean_name'_7.png' $tiles_dir/$clean_name'_8.png' $tiles_dir/$clean_name'_9.png' $tiles_dir/$clean_name'_10.png' $tiles_dir/$clean_name'_11.png' +smush -$smush_value_w \)     \
@@ -1029,7 +1029,7 @@ tile(){
 			-background none -smush -$smush_value_h  $smushdir/$clean_name.large.png
 	fi
 
-	if [ $T == 7 ]; then
+	if [ $T = 7 ]; then
 		convert \
 			\( $tiles_dir/$clean_name'_0.png' $tiles_dir/$clean_name'_1.png' $tiles_dir/$clean_name'_2.png' $tiles_dir/$clean_name'_3.png' $tiles_dir/$clean_name'_4.png' $tiles_dir/$clean_name'_5.png' $tiles_dir/$clean_name'_6.png' +smush -$smush_value_w \)        \
 			\( $tiles_dir/$clean_name'_7.png' $tiles_dir/$clean_name'_8.png' $tiles_dir/$clean_name'_9.png' $tiles_dir/$clean_name'_10.png' $tiles_dir/$clean_name'_11.png' $tiles_dir/$clean_name'_12.png' $tiles_dir/$clean_name'_13.png' +smush -$smush_value_w \)    \
@@ -1046,10 +1046,10 @@ tile(){
 	
 # 12. Move the result image and (if told to) delete the temporary directory
 
-	if [ "$fileformat" == "image" ]; then
+	if [ "$fileformat" = "image" ]; then
 		echo "# 12. Exporting to $exportdir"
 		# Export image
-		if [ "$skipbasic" == "Y" ]; then
+		if [ "$skipbasic" = "Y" ]; then
 			cp "$smushdir/$clean_name.large_final.png" "$exportdir/$projname-NS.png"
 		else
 			cp "$smushdir/$clean_name.large_final.png" "$exportdir/$projname-NS.png"
@@ -1059,7 +1059,7 @@ tile(){
 		cp "$basedir/run_neuralstyle.sh" "$exportdir/${projname}-settings.txt"
 		
 		# Clean up directories if told to
-		if [ "$cleanup" == "Y" ]; then
+		if [ "$cleanup" = "Y" ]; then
 			rm "$outdir/$clean_name.large.png"
 			rm "$outdir/$clean_name.large_feathered.png"
 			rm -r "$tiles_dir"
@@ -1077,8 +1077,8 @@ tile(){
 		exit
 	fi
 	
-	if [ "$fileformat" == "video" ]; then
-		if [ "$cleanup" == "Y" ]; then
+	if [ "$fileformat" = "video" ]; then
+		if [ "$cleanup" = "Y" ]; then
 			echo "# 12. Moving image to master directory and clearing the preliminary images"
 			mv "$smushdir/$clean_name.large_final.png" "$nsdir/frame_${i}.png"
 			rm -r "$processed_dir"
@@ -1096,14 +1096,14 @@ neural_style(){
 	echoname="$(basename $1 .png)"
 	
 	# Detect if called from basic() or tile()
-	if [ "$call_from" == "script_basic" ]; then
+	if [ "$call_from" = "script_basic" ]; then
 		maxitdetect="$maxit"
 		sizedetect="$constraintsize"
 		timerecho="N"
 		tile="0"
 	fi
 	
-	if [ "$call_from" == "script_tile" ]; then
+	if [ "$call_from" = "script_tile" ]; then
 		maxitdetect="$maxitupres"
 		sizedetect="$size"
 		timerecho="Y"
@@ -1122,27 +1122,27 @@ neural_style(){
 	# Main Script
 	if [ ! -s $3/$echoname.png ]; then
 		# Print
-		if [ "$fileformat" == "video" ]; then
-			if [ "$call_from" == "script_basic" ]; then
+		if [ "$fileformat" = "video" ]; then
+			if [ "$call_from" = "script_basic" ]; then
 				echo "Neural Style Transferring, basic (frame $frame)..."		
 			fi
 			
-			if [ "$call_from" == "script_tile" ]; then
+			if [ "$call_from" = "script_tile" ]; then
 				echo "Neural Style Transferring, tile $tile/$T_square (frame $frame)..."
 			fi
 		else
-			if [ "$call_from" == "script_basic" ]; then
+			if [ "$call_from" = "script_basic" ]; then
 				echo "Neural Style Transferring $echoname..."		
 			fi
 			
-			if [ "$call_from" == "script_tile" ]; then
+			if [ "$call_from" = "script_tile" ]; then
 				echo "Neural Style Transferring Tile $tile/$T_square..."
 			fi
 		fi
 		
 		# Run neural_style.py
-		if [ "$origcolors" == "Y" ]; then
-			if [ "$verbose" == "Y" ]; then
+		if [ "$origcolors" = "Y" ]; then
+			if [ "$verbose" = "Y" ]; then
 				python neural_style.py --content_img $1 --style_imgs $2 --img_output_dir $3 \
 					--max_size $sizedetect                                                  \
 					--original_colors                                                       \
@@ -1157,7 +1157,7 @@ neural_style(){
 					--max_iterations $maxitdetect --device /gpu:0
 			fi
 		else
-			if [ "$verbose" == "Y" ]; then
+			if [ "$verbose" = "Y" ]; then
 				python neural_style.py --content_img $1 --style_imgs $2 --img_output_dir $3 \
 					--max_size $sizedetect                                                  \
 					--content_weight $cweight --style_weight $sweight --tv_weight $tvweight \
@@ -1178,11 +1178,11 @@ neural_style(){
 	
 	# Retry
 	if [ ! -s $3/$echoname.png ] && [ $retry -lt 3 ]; then
-		if [ $retry == 1 ]; then
+		if [ $retry = 1 ]; then
 			retrygrammar="first"
 		fi
 		
-		if [ $retry == 2 ]; then
+		if [ $retry = 2 ]; then
 			retrygrammar="second"
 		fi
 		
@@ -1205,7 +1205,7 @@ neural_style(){
 	fi
 	
 	# Echo estimated time to completion
-	if [ "$timerecho" == "Y" ] && [ $time_single_run_san -gt 0 ]; then
+	if [ "$timerecho" = "Y" ] && [ $time_single_run_san -gt 0 ]; then
 		if [ "$tile" -ne "$T_square" ]; then
 			local timer_it=$(echo $time_single_run $T_square $tile | awk "{print $time_single_run*($T_square-$tile)}")
 			local timer_it_san="${timer_it%.*}"
@@ -1214,8 +1214,8 @@ neural_style(){
 		fi
 	fi
 	
-	if [ "$timerecho" == "Y" ] && [ $time_single_run_san -gt 0 ]; then
-		if [ $tile == $T_square ]; then
+	if [ "$timerecho" = "Y" ] && [ $time_single_run_san -gt 0 ]; then
+		if [ $tile = $T_square ]; then
 			local timer_3=$(( SECONDS - start ))
 			local time_all_it=$(echo $timer_3 $time_setup | awk "{print $timer_3-$time_setup}")
 			local time_all_it_print=$(show_time $time_all_it)
@@ -1246,19 +1246,43 @@ match_parameters(){
 	local s_sd_B=$(convert $2 -format "%[fx:standard_deviation.b]" info:)
 
 	# Calculate the gains and biases
-	local gain_R=$(echo $i_sd_R $s_sd_R | awk "{print $i_sd_R/$s_sd_R}")
-	local gain_G=$(echo $i_sd_G $s_sd_G | awk "{print $i_sd_G/$s_sd_G}")
-	local gain_B=$(echo $i_sd_B $s_sd_B | awk "{print $i_sd_B/$s_sd_B}")
+	local s_sd_R_check=$(echo $s_sd_R | awk "{if ($s_sd_R > 0) print 1; else print 0}")
+	if [ $s_sd_R_check = 1 ]; then
+		local gain_R=$(echo $i_sd_R $s_sd_R | awk "{print $i_sd_R/$s_sd_R}")
+	else
+		local gain_R="divzero"
+	fi
+	
+	local s_sd_G_check=$(echo $s_sd_G | awk "{if ($s_sd_G > 0) print 1; else print 0}")
+	if [ $s_sd_G_check = 1 ]; then
+		local gain_G=$(echo $i_sd_G $s_sd_G | awk "{print $i_sd_G/$s_sd_G}")
+	else
+		local gain_G="divzero"
+	fi
+	
+	local s_sd_B_check=$(echo $s_sd_B | awk "{if ($s_sd_B > 0) print 1; else print 0}")
+	if [ $s_sd_B_check = 1 ]; then
+		local gain_B=$(echo $i_sd_B $s_sd_B | awk "{print $i_sd_B/$s_sd_B}")
+	else
+		local gain_B="divzero"
+	fi
+	
 	local bias_R=$(echo $i_mean_R $s_mean_R $gain_R | awk "{print $i_mean_R-$s_mean_R*$gain_R}")
 	local bias_G=$(echo $i_mean_G $s_mean_G $gain_G | awk "{print $i_mean_G-$s_mean_G*$gain_G}")
 	local bias_B=$(echo $i_mean_B $s_mean_B $gain_B | awk "{print $i_mean_B-$s_mean_B*$gain_B}")
 
 	# Modify the style image to be like the input image
-	convert $2 \
-		-channel R -function Polynomial ${gain_R},${bias_R} \
-		-channel G -function Polynomial ${gain_G},${bias_G} \
-		-channel B -function Polynomial ${gain_B},${bias_B} \
-		+channel $3
+	if [ "$gain_R" != "divzero" ]; then
+		convert $2 -channel R -function Polynomial ${gain_R},${bias_R} +channel $3
+	fi
+	
+	if [ "$gain_G" != "divzero" ]; then
+		convert $2 -channel G -function Polynomial ${gain_G},${bias_G} +channel $3
+	fi
+	
+	if [ "$gain_B" != "divzero" ]; then
+		convert $2 -channel B -function Polynomial ${gain_B},${bias_B} +channel $3
+	fi
 
 }
 
@@ -1267,27 +1291,27 @@ waifu2x(){
 # $1 = input file path; $2 = output file path
 	
 	# Specify the model directory based on the algorithm specified
-	if [ "$waifu_algo" == "UpRGB" ]; then
+	if [ "$waifu_algo" = "UpRGB" ]; then
 		waifu_model="models/upconv_7_anime_style_art_rgb"
 	fi
 	
-	if [ "$waifu_algo" == "UpPhoto" ]; then
+	if [ "$waifu_algo" = "UpPhoto" ]; then
 		waifu_model="models/upconv_7_photo"
 	fi
 	
-	if [ "$waifu_algo" == "RGB" ]; then
+	if [ "$waifu_algo" = "RGB" ]; then
 		waifu_model="models/anime_style_art_rgb"
 	fi
 
-	if [ "$waifu_algo" == "Photo" ]; then
+	if [ "$waifu_algo" = "Photo" ]; then
 		waifu_model="models/photo"
 	fi	
 
-	if [ "$waifu_algo" == "Y" ]; then
+	if [ "$waifu_algo" = "Y" ]; then
 		waifu_model="models/ukbench"
 	fi	
 	
-	if [ "$waifu_algo" == "UpResNet10" ]; then
+	if [ "$waifu_algo" = "UpResNet10" ]; then
 		waifu_model="models/upresnet10"
 	fi	
 
@@ -1301,15 +1325,15 @@ waifu2x(){
 	waifu2x-caffe-cui.exe -i "$1" --model_dir "$waifu_model" --scale_ratio "$waifu_scale" --noise_level "$waifu_noise" --crop_size "$waifu_split" --output_file "$2"
 	
 	# Rename waifu2x file
-	if [ $waifu_scale_length == 1 ]; then
+	if [ $waifu_scale_length = 1 ]; then
 		mv "$2/input(${waifu_algo})(noise_scale)(Level${waifu_noise})(x${waifu_scale}.000000).png" "$2/waifu.png"
 	fi
 	
-	if [ $waifu_scale_length == 3 ]; then
+	if [ $waifu_scale_length = 3 ]; then
 		mv "$2/input(${waifu_algo})(noise_scale)(Level${waifu_noise})(x${waifu_scale}00000).png" "$2/waifu.png"
 	fi
 	
-	if [ $waifu_scale_length == 4 ]; then
+	if [ $waifu_scale_length = 4 ]; then
 		mv "$2/input(${waifu_algo})(noise_scale)(Level${waifu_noise})(x${waifu_scale}0000).png" "$2/waifu.png"
 	fi
 	
