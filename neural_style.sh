@@ -1114,7 +1114,7 @@ neural_style(){
 		timercount="1"
 	fi
 	
-	# Begin first-tile timer
+	# Begin timer
 	if [ $timercount -lt 10 ]; then
 		local timer_1=$(( SECONDS - start ))
 	fi
@@ -1193,18 +1193,20 @@ neural_style(){
 	
 	retry=1
 	
-	# End first-tile timer
+	# End timer
 	if [ $timercount -lt 10 ]; then
 		local timer_2=$(( SECONDS - start ))
-		time_all_runs=$(echo $time_single_run $timer_2 $timer_1 | awk "{print $time_all_runs+$timer_2-$timer_1}")
-		time_single_run=$(echo $time_single_run $timercount | awk "{print $time_all_runs/$timercount}")
+		time_all_runs=$(echo $time_all_runs $timer_2 $timer_1 | awk "{print $time_all_runs+$timer_2-$timer_1}")
+		time_single_run=$(echo $time_all_runs $timercount | awk "{print $time_all_runs/$timercount}")
 		time_single_run_san="${time_single_run%.*}"
-		(( timercount = timercount + 1 ))
+		if [ $time_single_run_san -ne 0 ]; then
+			(( timercount = timercount + 1 ))
+		fi
 	fi
 	
 	# Echo estimated time to completion
-	if [ "$timerecho" == "Y" ]; then
-		if [ "$tile" -ne "$T_square" ] && [ $time_single_run_san -gt 0 ]; then
+	if [ "$timerecho" == "Y" ] && [ $time_single_run_san -gt 0 ]; then
+		if [ "$tile" -ne "$T_square" ]; then
 			local timer_it=$(echo $time_single_run $T_square $tile | awk "{print $time_single_run*($T_square-$tile)}")
 			local timer_it_san="${timer_it%.*}"
 			local time_est=$(show_time $timer_it_san)
@@ -1212,8 +1214,8 @@ neural_style(){
 		fi
 	fi
 	
-	if [ "$timerecho" == "Y" ]; then
-		if [ $tile == $T_square ] && [ $time_single_run_san -gt 0 ]; then
+	if [ "$timerecho" == "Y" ] && [ $time_single_run_san -gt 0 ]; then
+		if [ $tile == $T_square ]; then
 			local timer_3=$(( SECONDS - start ))
 			local time_all_it=$(echo $timer_3 $time_setup | awk "{print $timer_3-$time_setup}")
 			local time_all_it_print=$(show_time $time_all_it)
