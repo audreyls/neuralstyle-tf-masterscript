@@ -139,7 +139,7 @@ check_inputs(){
 	fi
 	
 	#d2. $T detection occurs in image_setup() if undefined
-	
+		
 	#d3. $overlap detection occurs in image_setup() if undefined
 	
 # E. Parameters for video (if applicable)
@@ -158,7 +158,17 @@ check_inputs(){
 		ns_video_opacity="1"
 	fi
 	
-	# Move to launch()
+# Final checks
+
+	# Check if skipbasic = Y and tile_num = 1
+	if [ "$skipbasic" = "Y" ] && [ $tile_num = 1 ]; then
+		echo "#d1, #d2. Script has been told to skip the basic process but not to tile the input."
+		echo "#d1, #d2. Set skipbasic=N or tile_num>1."
+		sleep 5
+		exit 1
+	fi	
+	
+# Move to launch()
 	launch $1 $2
 }
 
