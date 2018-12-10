@@ -819,10 +819,12 @@ tile(){
 	(( T_upperbound = T_square*2 ))
 	
 	# Because of minor size discrepancies between tiles, I pad by not including $overlap to be safe
-	sizecheckreal_w=$(echo $overlap $cw $T | awk "{print $cw/$T}")
+	sizechecker_cw=$(convert $inputopt -format "%w" info:)	
+	sizecheckreal_w=$(echo $overlap $sizechecker_cw $T | awk "{print $sizechecker_cw/$T}")
 	sizecheckreal_w="${sizecheckreal_w%.*}"
 	
-	sizecheckreal_h=$(echo $overlap $ch $T | awk "{print $ch/$T}")
+	sizechecker_ch=$(convert $inputopt -format "%h" info:)
+	sizecheckreal_h=$(echo $overlap $sizechecker_ch $T | awk "{print $sizechecker_ch/$T}")
 	sizecheckreal_h="${sizecheckreal_h%.*}"
 	
 	# Remove aberrant tiles (step 1)
