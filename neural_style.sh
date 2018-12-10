@@ -1368,7 +1368,7 @@ show_time(){
 	if (( num > 59 )); then
 		(( sec = num%60 ))
 		(( num = num/60 ))
-        if (( num  > 59 )); then
+		if (( num  > 59 )); then
 			(( min = num%60 ))
 			(( num =  num/60 ))
 			(( hour = num ))
