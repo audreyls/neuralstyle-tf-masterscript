@@ -161,7 +161,7 @@ check_inputs(){
 # Final checks
 
 	# Check if skipbasic = Y and tile_num = 1
-	if [ "$skipbasic" = "Y" ] && [ $tile_num = 1 ]; then
+	if [ "$skipbasic" = "Y" ] && [ ! -z $tile_num ] && [ $tile_num = 1 ]; then
 		echo "#d1, #d2. Script has been told to skip the basic process but not to tile the input."
 		echo "#d1, #d2. Set skipbasic=N or tile_num>1."
 		sleep 5
