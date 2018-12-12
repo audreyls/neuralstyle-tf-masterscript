@@ -24,7 +24,7 @@ check_inputs(){
 	outdir="$basedir/output/$projname"
 	
 	# a2. Detect if there is no $input
-	if [ -z $input ] || [ ! -f $input ]; then
+	if [ -z "$input" ] || [ ! -f "$input" ]; then
 		echo "#a2. Either no input specified or the input directory has a typo."
 		echo "Exiting."
 		sleep 5
@@ -32,7 +32,7 @@ check_inputs(){
 	fi
 	
 	# a3. Detect if there is no $style
-	if [ -z $style ] || [ ! -f $style ]; then
+	if [ -z "$style" ] || [ ! -f "$style" ]; then
 		echo "#a3. Either no style image(s) were specified or there's a typo."
 		echo "Exiting."
 		sleep 5
@@ -48,7 +48,7 @@ check_inputs(){
 	fi
 	
 	# a5. Detect if there is no $exportdir
-	if [ -z $exportdir ]; then
+	if [ -z "$exportdir" ]; then
 		echo "#a5. No export directory specified."
 		echo "Final video/image will be in ${outdir}."
 		exportdir="$outdir"
@@ -98,7 +98,7 @@ check_inputs(){
 	fi	
 	
 	#b8. $size autodetection occurs in image_setup() if unspecified
-	
+
 	#b9. Detect if no $origcolors
 	if [ -z $origcolors ]; then
 		origcolors="N"
@@ -139,7 +139,7 @@ check_inputs(){
 	fi
 	
 	#d2. $T detection occurs in image_setup() if undefined
-		
+	
 	#d3. $overlap detection occurs in image_setup() if undefined
 	
 # E. Parameters for video (if applicable)
@@ -166,7 +166,7 @@ check_inputs(){
 		echo "#d1, #d2. Set skipbasic=N or tile_num>1."
 		sleep 5
 		exit 1
-	fi	
+	fi
 	
 # Move to launch()
 	launch $1 $2
@@ -878,8 +878,20 @@ tile(){
 		original_tile_m="$original_tile_h"
 	fi
 	
-	# Resize all tiles to account for rounding errors
-	mogrify -path $base -resize "$original_tile_w"x"$original_tile_h"\! $base/*.png
+	if [ $original_tile_m -gt $constraintsize ]; then
+		# Downsize tiles to be under the contraint size, if applicable
+		echo "Downsizing tiles to $constraintsize pixels..."
+		if [ "$cw" -ge "$ch" ]; then
+			mogrify -path $base -resize "$constraintsize"x $base/*.png
+		else
+			mogrify -path $base -resize x"$constraintsize" $base/*.png
+		fi
+		tileresized="Y"
+	else
+		# Resize all tiles to account for rounding errors
+		mogrify -path $base -resize "$original_tile_w"x"$original_tile_h"\! $base/*.png
+		tileresized="N"
+	fi
 	
 	# Output overall setup time
 	time_setup=$(( SECONDS - start ))
@@ -901,6 +913,21 @@ tile(){
 	for tile in $( eval echo {0..$T_square} ); do
 		neural_style ${tileinput_dir}/"${clean_name}_"$tile.png $styleopt $tiles_dir
 	done
+	
+	# Waifu2x the tiles if they had been sized down
+	if [ $tileresized = "Y" ]; then
+		echo "Re-enlarging tiles..."
+		waifu_noise_backup="$waifu_noise"
+		waifu_size_backup="$size"
+		for tile in $( eval echo {0..$T_square} ); do
+			size="$original_tile_m"
+			waifu_noise="0"
+			waifu2x "$tiles_dir/${clean_name}_$tile.png" "$tiles_dir"
+			mv "$tiles_dir/waifu.png" "$tiles_dir/${clean_name}_$tile.png"
+		done
+		waifu_noise="$waifu_noise_backup"
+		size="$waifu_size_backup"
+	fi
 	
 	upres_tile_w=$(convert $tiles_dir/$clean_name'_0.png' -format "%w" info:)
 	upres_tile_h=$(convert $tiles_dir/$clean_name'_0.png' -format "%h" info:)
@@ -1301,6 +1328,9 @@ match_parameters(){
 waifu2x(){
 # Calls waifu2x to increase the size of the basic neural-style image
 # $1 = input file path; $2 = output file path
+
+	# Rename file
+	local waifu_filename=$(basename $1 .png)
 	
 	# Specify the model directory based on the algorithm specified
 	if [ "$waifu_algo" = "UpRGB" ]; then
@@ -1338,15 +1368,15 @@ waifu2x(){
 	
 	# Rename waifu2x file
 	if [ $waifu_scale_length = 1 ]; then
-		mv "$2/input(${waifu_algo})(noise_scale)(Level${waifu_noise})(x${waifu_scale}.000000).png" "$2/waifu.png"
+		mv "$2/${waifu_filename}(${waifu_algo})(noise_scale)(Level${waifu_noise})(x${waifu_scale}.000000).png" "$2/waifu.png"
 	fi
 	
 	if [ $waifu_scale_length = 3 ]; then
-		mv "$2/input(${waifu_algo})(noise_scale)(Level${waifu_noise})(x${waifu_scale}00000).png" "$2/waifu.png"
+		mv "$2/${waifu_filename}(${waifu_algo})(noise_scale)(Level${waifu_noise})(x${waifu_scale}00000).png" "$2/waifu.png"
 	fi
 	
 	if [ $waifu_scale_length = 4 ]; then
-		mv "$2/input(${waifu_algo})(noise_scale)(Level${waifu_noise})(x${waifu_scale}0000).png" "$2/waifu.png"
+		mv "$2/${waifu_filename}(${waifu_algo})(noise_scale)(Level${waifu_noise})(x${waifu_scale}0000).png" "$2/waifu.png"
 	fi
 	
 	# Use ImageMagick to make sure the resultant file is the correct size
