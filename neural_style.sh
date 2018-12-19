@@ -123,7 +123,7 @@ check_inputs(){
 	
 	#c2. Detect if no $waifu_noise
 	if [ -z $waifu_noise ]; then
-		waifu_noise="1"
+		waifu_noise="0"
 	fi
 	
 	#c3. Detect if no $waifu_split
@@ -760,6 +760,7 @@ tile(){
 				convert "$outdir/input_resize.png" -geometry x"$size" "$outdir/input_resize.png"
 			fi
 			composite -dissolve "$input_blend" -gravity Center "$upresdir/waifu.png" "$outdir/input_resize.png" -alpha Set "$upresdir/blendedinput.png"
+			rm "$outdir/input_resize.png"
 			inputopt="$upresdir/blendedinput.png"
 		else
 			inputopt="$upresdir/waifu.png"
