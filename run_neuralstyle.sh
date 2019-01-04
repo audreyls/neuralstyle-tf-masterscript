@@ -5,6 +5,7 @@
 		
 	# a2. Set input
 	#     Accepts: both image and video | Must enter, or project will fail
+	#     If you'd like to batch build, just enter the folder name
 		input=""
 
 	# a3. Set style
@@ -156,6 +157,19 @@ export ns_video_opacity
 
 # Run script
 chmod +x neural_style.sh
-./neural_style.sh $input $style
+if [ -f $input ]; then
+	./neural_style.sh "$input" "$style"
+else
+	inputdir="$input"
+	projnameorig="$projname"
+	i=1
+	for file in "$inputdir"/*; do
+		input="$file"
+		projname="$projnameorig"-"$i"
+		export projname
+		./neural_style.sh "$input" "$style"
+		(( i = i + 1 ))
+	done
+fi
 
 exit
