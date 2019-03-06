@@ -245,7 +245,7 @@ video(){
 	mkdir -p "$framedir"
 	
 	# Run ffmpeg
-	if [ "$skip_basic" = "Y" ] || [ $input_blend -ne 100 ]; then
+	if [ "$skip_basic" = "Y" ] || [ $input_blend -ne 100 ] && [ $tile_num -gt 1 ]; then
 		if [ ! -z $end_frame ]; then
 			ffmpeg -v quiet -i "$1" -r "$framerate" -vframes "$end_frame" -vf scale="$size":-1 "${framedir}/frame_%04d.png"
 		else
