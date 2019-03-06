@@ -97,7 +97,7 @@ check_inputs(){
 		style_scale="1"
 	fi	
 	
-	#b8. $size autodetection occurs in image_setup() if unspecified
+	#b8. $size autodetection occurs in image_setup() for images or launch() for videos if unspecified
 
 	#b9. Detect if no $origcolors
 	if [ -z $origcolors ]; then
@@ -192,6 +192,20 @@ launch(){
 		if [ -f $testdir/frame_0002.png ]; then
 			echo "File detected as video"
 			fileformat=video
+			# Find $size for video if not specified
+			if [ -z $size ]; then
+				cw=$(convert $testdir/frame_0002.png -format "%w" info:)
+				ch=$(convert $testdir/frame_0002.png -format "%h" info:)
+				if [ $cw -ge $ch ]; then
+					cm=$cw
+					cr=$(echo $cw $ch | awk "{print $cw/$ch}")
+				else
+					cm=$ch
+					cr=$(echo $ch $cw | awk "{print $ch/$cw}")
+				fi
+				size=$cm
+				echo "Size detected as $cw x $ch"
+			fi
 		else
 			echo "File detected as image"
 			fileformat=image
@@ -920,9 +934,9 @@ tile(){
 		echo "Re-enlarging tiles..."
 		waifu_noise_backup="$waifu_noise"
 		waifu_size_backup="$size"
+		size="$original_tile_m"
+		waifu_noise="0"
 		for tile in $( eval echo {0..$T_square} ); do
-			size="$original_tile_m"
-			waifu_noise="0"
 			waifu2x "$tiles_dir/${clean_name}_$tile.png" "$tiles_dir"
 			mv "$tiles_dir/waifu.png" "$tiles_dir/${clean_name}_$tile.png"
 		done
@@ -1357,34 +1371,14 @@ waifu2x(){
 	if [ "$waifu_algo" = "UpResNet10" ]; then
 		waifu_model="models/upresnet10"
 	fi	
-
-	# Determine how much to scale the image up
-	local mod=$(echo $size | awk "{print 100*$size/$constraintsize}")
-	local mod2="${mod%.*}"
-	local waifu_scale=$(echo $mod | awk "{print $mod2/100}")
-	waifu_scale_length="${#waifu_scale}"
 	
-	# Run waifu2x
-	waifu2x-caffe-cui.exe -i "$1" --model_dir "$waifu_model" --scale_ratio "$waifu_scale" --noise_level "$waifu_noise" --crop_size "$waifu_split" --output_file "$2"
-	
-	# Rename waifu2x file
-	if [ $waifu_scale_length = 1 ]; then
-		mv "$2/${waifu_filename}(${waifu_algo})(noise_scale)(Level${waifu_noise})(x${waifu_scale}.000000).png" "$2/waifu.png"
-	fi
-	
-	if [ $waifu_scale_length = 3 ]; then
-		mv "$2/${waifu_filename}(${waifu_algo})(noise_scale)(Level${waifu_noise})(x${waifu_scale}00000).png" "$2/waifu.png"
-	fi
-	
-	if [ $waifu_scale_length = 4 ]; then
-		mv "$2/${waifu_filename}(${waifu_algo})(noise_scale)(Level${waifu_noise})(x${waifu_scale}0000).png" "$2/waifu.png"
-	fi
-	
-	# Use ImageMagick to make sure the resultant file is the correct size
+	# Run waifu2x and rename resultant file
 	if [ $cw -ge $ch ]; then
-		convert -geometry "$size"x "$2/waifu.png" "$2/waifu.png"
+		waifu2x-caffe-cui.exe -i "$1" --model_dir "$waifu_model" --scale_width "$size" --noise_level "$waifu_noise" --crop_size "$waifu_split" --output_file "$2"
+		mv "$2/${waifu_filename}(${waifu_algo})(noise_scale)(Level${waifu_noise})(width $size).png" "$2/waifu.png"
 	else
-		convert -geometry x"$size" "$2/waifu.png" "$2/waifu.png"
+		waifu2x-caffe-cui.exe -i "$1" --model_dir "$waifu_model" --scale_height "$size" --noise_level "$waifu_noise" --crop_size "$waifu_split" --output_file "$2"
+		mv "$2/${waifu_filename}(${waifu_algo})(noise_scale)(Level${waifu_noise})(height $size).png" "$2/waifu.png"
 	fi
 }
 
